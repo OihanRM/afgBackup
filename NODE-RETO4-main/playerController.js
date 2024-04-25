@@ -115,9 +115,41 @@ exports.delete = function(req, res)
                 });
         });
 }
+
+exports.deletePlayer = function(req, res) 
+{
+    console.log("Peticion de borrar jugador y puntajes recibida");
+    Player.deleteOne({ _id: req.params.player_id })
+        .exec()
+        .then(function() {
+            // Ahora eliminamos las puntuaciones asociadas a este jugador
+            Score.deleteMany({ player: req.params.player_id })
+                .exec()
+                .then(function() {
+                    res.json({
+                        status: "success",
+                        message: "Player and scores deleted"
+                    });
+                    console.log("Peticion de borrar jugador y puntajes servida");
+                })
+                .catch(function(err) {
+                    res.json({
+                        status: "error",
+                        message: err
+                    });
+                });
+        })
+        .catch(function(err) {
+            res.json({
+                status: "error",
+                message: err
+            });
+        });
+}
+
 exports.update = function(req, res)
 {
-    console.log("Peticion de actualizar nombre/contraseña jugador recibida");
+    console.log("Peticion de actualizar nombre/contraseña/games jugador recibida");
     Player.findOne(
         {
             name: req.params.player_name
@@ -125,6 +157,8 @@ exports.update = function(req, res)
         {
             player.name = req.body.name ? req.body.name : player.name;
             player.password = req.body.password ? req.body.password : player.password;
+            player.games = req.body.games ? req.body.games : player.games;
+            player.avatar = req.body.avatar ? req.body.avatar : player.avatar;
 
             player.save().then(function()
             {
@@ -133,7 +167,7 @@ exports.update = function(req, res)
                         message: "Player updated",
                         data: player
                     });
-                    console.log("Peticion de actualizar nombre/contraseña jugador servida");
+                    console.log("Peticion de actualizar nombre/contraseña/games jugador servida");
             }).catch(function(err)
             {
                 res.json(
